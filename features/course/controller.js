@@ -225,6 +225,7 @@ module.exports = {
     try {
       const userId = req.user.id;
       const code = req.params.courseCode;
+      const role = req.query.role;
 
       let course = await Course.findOne({ code: code });
       if (!course) {
@@ -236,6 +237,13 @@ module.exports = {
         return res.forbidden("Invitation key is expired", "EXPIRED_INVITATION_KEY");
       }
 
+      if (role === 'teacher' && course.teachers.includes(userId)) {
+        return res.badRequest(
+          "Teacher are already in the class",
+          "Teacher are already in the class"
+        );
+      }
+
       if (course.participants.includes(userId)) {
         return res.badRequest(
           "User are already in the class",
@@ -243,12 +251,20 @@ module.exports = {
         );
       }
 
-      course.participants.push(userId);
-      await Course.findByIdAndUpdate(course.id, {
-        $push: {
-          participants: userId,
-        },
-      });
+      if (role === 'teacher') {
+        await Course.findByIdAndUpdate(course.id, {
+          $push: {
+            teachers: userId,
+          },
+        });
+      } else {
+        await Course.findByIdAndUpdate(course.id, {
+          $push: {
+            participants: userId,
+          },
+        });
+      }
+
       res.ok(true);
     } catch (err) {
       console.log(err);
