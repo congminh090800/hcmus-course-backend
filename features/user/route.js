@@ -35,6 +35,12 @@ router.patch(
   controller.setStudentId
 );
 
+router.patch(
+  "/user/verify-email",
+  validator(requestSchema.verifyEmail, "body"),
+  controller.verifyEmail
+);
+
 module.exports = router;
 
 /**

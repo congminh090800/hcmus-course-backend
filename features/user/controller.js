@@ -4,6 +4,7 @@ const moment = require("moment");
 const jwt = require("jsonwebtoken");
 const config = require("config");
 const mongoose = require("mongoose");
+const nodemailer = require("nodemailer");
 
 module.exports = {
   signUp: async (req, res, next) => {
@@ -37,6 +38,20 @@ module.exports = {
       });
 
       const saved = await newUser.save();
+
+      const transporter = nodemailer.createTransport(config.nodemailerConfig);
+      const requestHost = req.get("origin");
+      const acceptLink = `${requestHost}/verify-email/${saved._id}`;
+
+      const mailOptions = {
+        from: '"HCMUS Course" <course@hcmus.com>', // sender address
+        to: email, // list of receivers
+        subject: "Verify your email ✔", // Subject line
+        html: `<p>Click <a href="${acceptLink}">this link</a> to verify your email</p>`, // html body
+      };
+
+      await transporter.sendMail(mailOptions);
+
       return res.ok(saved._id);
     } catch (err) {
       console.log("sign up failed:", err);
@@ -238,6 +253,31 @@ module.exports = {
       }
 
       user.studentId = studentId;
+      await user.save();
+
+      return res.ok(true);
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  },
+  verifyEmail: async (req, res) => {
+    const { userId } = req.body;
+
+    try {
+      const user = await User.findById(userId);
+      if (!user) {
+        return res.notFound("User not found", "User not found");
+      }
+      if (!user.isUnactive) {
+        return res.badRequest(
+          "This user is already verified",
+          "Bad Request"
+        );
+      }
+
+      user.isUnactive = false;
+
       await user.save();
 
       return res.ok(true);
