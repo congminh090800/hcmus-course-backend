@@ -39,8 +39,8 @@ module.exports = {
         backgroundImg: body.backgroundImg ? body.backgroundImg : "",
         participants: participants
           ? participants.map((participant) =>
-              mongoose.Types.ObjectId(participant)
-            )
+            mongoose.Types.ObjectId(participant)
+          )
           : [],
       });
 
@@ -378,6 +378,7 @@ module.exports = {
       };
 
       await transporter.sendMail(mailOptions);
+      return res.ok(true);
     } catch (err) {
       console.log(err);
       next(err);
