@@ -510,20 +510,17 @@ module.exports = {
         return res.forbidden("Forbiden", "NO_PERMISSION_USER");
       }
 
-      for (i = 0; i < gradeStructure.length; i++) {
-        const grade = gradeStructure[i];
-        grade.index = i;
+      let result = [];
+      for (const grade of gradeStructure.reverse()) {
+        const dbGrade = course.gradeStructure.find(e => e.name == grade.name);
+        result.unshift(dbGrade);
       }
 
-      const updatedCourse = await Course.findByIdAndUpdate(
-        courseId,
-        {
-          gradeStructure: gradeStructure,
-        },
-        { new: true, upsert: true }
-      );
+      course.gradeStructure = result;
 
-      return res.ok(updatedCourse.gradeStructure);
+      await course.save();
+
+      return res.ok(course.gradeStructure);
     } catch (err) {
       console.log(err);
       next(err);
