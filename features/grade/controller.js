@@ -1,5 +1,5 @@
 const { writeToString } = require("@fast-csv/format");
-const { Course, User } = require("models");
+const { Course, User, GradeRequest } = require("models");
 const mongoose = require("mongoose");
 const csv = require("@fast-csv/parse");
 
@@ -549,6 +549,16 @@ module.exports = {
         return res.forbidden("You is not enrolled in this course grade", "UNENROLLED");
       }
 
+      const request = {
+        courseId: courseId,
+        userRequestId: userId,
+        gradeComponentId: gradeComponentId,
+        expectedGrade: expectedGrade,
+        explanation: explanation,
+      }
+
+      const result = await GradeRequest.create(request);
+
       const notification = {
         sender: user._id,
         title: `Grade review request in ${selectedCourse.name}`,
@@ -581,7 +591,7 @@ module.exports = {
           },
         }
       );
-      return res.ok(true);
+      return res.ok(result);
     } catch (err) {
       console.log(err);
       next(err);

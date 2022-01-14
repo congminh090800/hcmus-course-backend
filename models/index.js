@@ -4,4 +4,5 @@ module.exports = {
   Admin: require("./admin"),
   Invitation: require("./invitation"),
   Mapping: require("./mapping"),
+  GradeRequest: require("./grade-request"),
 };
