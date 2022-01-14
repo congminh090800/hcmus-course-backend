@@ -523,7 +523,7 @@ module.exports = {
         courseId: mongoose.Types.ObjectId(courseId),
         gradeComponentId: mongoose.Types.ObjectId(gradeComponentId),
         userRequestId: mongoose.Types.ObjectId(userId),
-        deleted_flag: false,
+        status: 'pending',
       });
 
       if (existingRequest) {
@@ -683,14 +683,14 @@ module.exports = {
         courseId: mongoose.Types.ObjectId(courseId),
         userRequestId: mongoose.Types.ObjectId(userRequestId),
         gradeComponentId: mongoose.Types.ObjectId(gradeComponentId),
-        deleted_flag: false,
+        status: 'pending',
       });
 
       if (!request) {
         return res.notFound("Not found grade request", "NOT_FOUND");
       }
 
-      request.deleted_flag = true;
+      request.status = 'accepted';
       request.comment = comment;
       request.finalGrade = grade;
 
@@ -706,7 +706,106 @@ module.exports = {
           courseCode: selectedCourse.code,
           courseId: selectedCourse._id,
           gradeComponentId: gradeComponent._id,
+          status: 'accepted',
           grade: grade,
+          comment: comment,
+        },
+        deleted_flag: false,
+      };
+
+      await User.updateOne(
+        {
+          _id: userRequestId,
+        },
+        {
+          $push: {
+            notifications: {
+              $each: [notification],
+              $slice: -50,
+            },
+          },
+        }
+      );
+      return res.ok(true);
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  },
+  rejectRequest: async (req, res, next) => {
+    try {
+      const { courseId, gradeComponentId, userRequestId, comment } = req.body;
+      const userId = req.user.id;
+
+      const selectedCourse = req.course;
+
+      if (!selectedCourse) {
+        return res.notFound("Class does not exist", "Class does not exist");
+      }
+
+      const gradeComponent = selectedCourse.gradeStructure.find((gC) =>
+        gC._id.equals(mongoose.Types.ObjectId(gradeComponentId))
+      );
+
+      if (!gradeComponent) {
+        return res.notFound(
+          "Grade component does not exist in grade stucture",
+          "Not found"
+        );
+      }
+
+      const studentUser = await User.findById(userRequestId);
+
+      const student = selectedCourse.enrolledStudents.find(e => e.studentId === studentUser.studentId);
+      if (!student) {
+        return res.notFound("Not found student", "NOT_FOUND");
+      }
+
+      await Course.findByIdAndUpdate(
+        courseId,
+        {
+          $set: {
+            "enrolledStudents.$[el].grades.$[gci].inReview": false,
+          },
+        },
+        {
+          arrayFilters: [
+            {
+              "el.studentId": student.studentId,
+            },
+            {
+              "gci.gradeComponentId": gradeComponentId,
+            }
+          ],
+        }
+      );
+
+      const request = await GradeRequest.findOne({
+        courseId: mongoose.Types.ObjectId(courseId),
+        userRequestId: mongoose.Types.ObjectId(userRequestId),
+        gradeComponentId: mongoose.Types.ObjectId(gradeComponentId),
+        status: 'pending',
+      });
+
+      if (!request) {
+        return res.notFound("Not found grade request", "NOT_FOUND");
+      }
+
+      request.status = 'rejected';
+      request.comment = comment;
+      request.save();
+
+      const notification = {
+        sender: userId,
+        title: `Grade review result`,
+        description: `Teacher has rejected your grade review request for ${gradeComponent.name}`,
+        seen: false,
+        type: "GRADE_REVIEW_RESULT",
+        extendedData: {
+          courseCode: selectedCourse.code,
+          courseId: selectedCourse._id,
+          gradeComponentId: gradeComponent._id,
+          status: 'rejected',
           comment: comment,
         },
         deleted_flag: false,
@@ -742,6 +841,23 @@ module.exports = {
       });
 
       return res.ok(requests || []);
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  },
+  requestStatus: async (req, res, next) => {
+    try {
+      const { courseId, gradeComponentId } = req.query;
+      const userId = req.user.id;
+
+      const request = await GradeRequest.findOne({
+        courseId: mongoose.Types.ObjectId(courseId),
+        gradeComponentId: mongoose.Types.ObjectId(gradeComponentId),
+        userRequestId: mongoose.Types.ObjectId(userId),
+      });
+
+      return res.ok(request || { message: "No request found" });
     } catch (err) {
       console.log(err);
       next(err);

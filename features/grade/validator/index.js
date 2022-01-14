@@ -7,5 +7,7 @@ module.exports = {
   finalizeGradeComponent: require("./finalize-grade-component"),
   requestReview: require("./request-review"),
   acceptRequest: require("./accept-request"),
+  rejectRequest: require("./reject-request"),
   pendingRequests: require("./pending-requests"),
+  requestStatus: require("./request-status"),
 };

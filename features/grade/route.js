@@ -90,12 +90,27 @@ router.post(
   controller.acceptRequest
 );
 
+router.post(
+  '/grade/reject-request',
+  authenticate,
+  roleAuthenticate,
+  validator(requestSchema.rejectRequest),
+  controller.rejectRequest
+);
+
 router.get(
   '/grade/pending-requests',
   authenticate,
   roleAuthenticate,
   validator(requestSchema.pendingRequests, "query"),
   controller.pendingRequests
+)
+
+router.get(
+  '/grade/request-status',
+  authenticate,
+  validator(requestSchema.requestStatus, "query"),
+  controller.requestStatus
 )
 
 module.exports = router;
@@ -353,6 +368,32 @@ module.exports = router;
 
 /**
  * @swagger
+ * /api/grade/reject-request:
+ *  post:
+ *      tags:
+ *          - grade
+ *      summary: Reject student grade review request
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      example:
+ *                           {
+ *                               "courseId": "6190e3f9a99e9a5fe302e4c9",
+ *                               "gradeComponentId": "61dd7d6059d856283d373d48",
+ *                               "userRequestId": "618e9554ef6575b47ed7c936",
+ *                               "comment": "Some comment"
+ *                           }
+ *      responses:
+ *          200:
+ *              description: OK
+ *
+ */
+
+/**
+ * @swagger
  * /api/grade/pending-requests:
  *  get:
  *      tags:
@@ -370,4 +411,25 @@ module.exports = router;
  *      responses:
  *          200:
  *              description: List of pending requests
+ */
+
+/**
+ * @swagger
+ * /api/grade/request-status:
+ *  get:
+ *      tags:
+ *          - grade
+ *      summary: Get pending grade review request
+ *      parameters:
+ *          -   name: courseId
+ *              in: query
+ *              schema:
+ *                  type: string
+ *          -   name: gradeComponentId
+ *              in: query
+ *              schema:
+ *                  type: string
+ *      responses:
+ *          200:
+ *              description: returns pending request (status)
  */

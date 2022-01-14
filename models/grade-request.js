@@ -27,6 +27,11 @@ const gradeRequestSchema = new Schema(
         },
         finalGrade: Number,
         comment: String,
+        status: {
+            type: String,
+            enum: ["pending", "accepted", "rejected"],
+            default: "pending",
+        },
         deleted_flag: { type: Boolean, default: false },
     },
     { timestamps: true }
