@@ -5,4 +5,5 @@ module.exports = {
   gradeTemplate: require("./grade-template"),
   uploadGrades: require("./upload-grades"),
   finalizeGradeComponent: require("./finalize-grade-component"),
+  requestReview: require("./request-review"),
 };

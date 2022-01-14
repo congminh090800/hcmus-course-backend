@@ -74,6 +74,14 @@ router.patch(
   validator(requestSchema.finalizeGradeComponent),
   controller.unfinalizeColumn
 );
+
+router.post(
+  '/grade/request-review',
+  authenticate,
+  validator(requestSchema.requestReview),
+  controller.requestReview
+);
+
 module.exports = router;
 
 /**

@@ -513,4 +513,78 @@ module.exports = {
       next(err);
     }
   },
+
+  requestReview: async (req, res, next) => {
+    try {
+      const { courseId, gradeComponentId, expectedGrade, explanation } = req.body;
+      const userId = req.user.id;
+
+      const selectedCourse = await Course.findOne({
+        _id: mongoose.Types.ObjectId(courseId),
+        deleted_flag: false,
+      });
+
+      if (!selectedCourse) {
+        return res.notFound("Class does not exist", "Class does not exist");
+      }
+
+      const gradeComponent = selectedCourse.gradeStructure.find((gC) =>
+        gC._id.equals(mongoose.Types.ObjectId(gradeComponentId))
+      );
+
+      if (!gradeComponent) {
+        return res.notFound(
+          "Grade component does not exist in grade stucture",
+          "Not found"
+        );
+      }
+
+      console.log('userId', userId);
+      const user = await User.findById(userId);
+
+      console.log("user", user);
+
+      const student = selectedCourse.enrolledStudents.find(e => e.studentId === user.studentId);
+      if (!student) {
+        return res.forbidden("You is not enrolled in this course grade", "UNENROLLED");
+      }
+
+      const notification = {
+        sender: user._id,
+        title: `Grade review request in ${selectedCourse.name}`,
+        description: `${student.fullName} has request a grade review for ${gradeComponent.name}`,
+        seen: false,
+        type: "GRADE_REVIEW_REQUEST",
+        extendedData: {
+          courseCode: selectedCourse.code,
+          courseId: selectedCourse._id,
+          gradeComponentId: gradeComponent._id,
+          expectedGrade: expectedGrade,
+          explanation: explanation,
+        },
+        deleted_flag: false,
+      };
+
+      const teachers = selectedCourse.teachers || [];
+      await User.updateMany(
+        {
+          _id: {
+            $in: teachers,
+          },
+        },
+        {
+          $push: {
+            notifications: {
+              $each: [notification],
+              $slice: -50,
+            },
+          },
+        }
+      );
+      return res.ok(true);
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  },
 };
