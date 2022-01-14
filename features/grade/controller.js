@@ -519,6 +519,17 @@ module.exports = {
       const { courseId, gradeComponentId, expectedGrade, explanation } = req.body;
       const userId = req.user.id;
 
+      const existingRequest = await GradeRequest.findOne({
+        courseId: mongoose.Types.ObjectId(courseId),
+        gradeComponentId: mongoose.Types.ObjectId(gradeComponentId),
+        userRequestId: mongoose.Types.ObjectId(userId),
+        deleted_flag: false,
+      });
+
+      if (existingRequest) {
+        return res.badRequest("You have already requested review for this grade");
+      }
+
       const selectedCourse = await Course.findOne({
         _id: mongoose.Types.ObjectId(courseId),
         deleted_flag: false,
