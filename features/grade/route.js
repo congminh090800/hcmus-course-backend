@@ -82,6 +82,14 @@ router.post(
   controller.requestReview
 );
 
+router.post(
+  '/grade/accept-request',
+  authenticate,
+  roleAuthenticate,
+  validator(requestSchema.acceptRequest),
+  controller.acceptRequest
+);
+
 module.exports = router;
 
 /**

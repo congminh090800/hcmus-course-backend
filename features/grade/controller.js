@@ -597,4 +597,117 @@ module.exports = {
       next(err);
     }
   },
+
+  acceptRequest: async (req, res, next) => {
+    try {
+      const { courseId, gradeComponentId, userRequestId, grade, comment } = req.body;
+      const userId = req.user.id;
+
+      const selectedCourse = req.course;
+
+      console.log("selectedCourse", selectedCourse);
+
+      if (!selectedCourse) {
+        return res.notFound("Class does not exist", "Class does not exist");
+      }
+
+      const gradeComponent = selectedCourse.gradeStructure.find((gC) =>
+        gC._id.equals(mongoose.Types.ObjectId(gradeComponentId))
+      );
+
+      if (!gradeComponent) {
+        return res.notFound(
+          "Grade component does not exist in grade stucture",
+          "Not found"
+        );
+      }
+
+      const studentUser = await User.findById(userRequestId);
+
+      const student = selectedCourse.enrolledStudents.find(e => e.studentId === studentUser.studentId);
+      if (!student) {
+        return res.notFound("Not found student", "NOT_FOUND");
+      }
+
+      if (grade > gradeComponent.point) {
+        return res.badRequest("Grade must not be greater than point", "GRADE_GREATER_THAN_POINT");
+      }
+
+      await Course.findByIdAndUpdate(
+        courseId,
+        {
+          $set: {
+            "enrolledStudents.$[el].grades.$[gci].point": grade,
+          },
+        },
+        {
+          arrayFilters: [
+            {
+              "el.studentId": student.studentId,
+            },
+            {
+              "gci.gradeComponentId": gradeComponentId,
+            }
+          ],
+          returnDocument: "after",
+        }
+      );
+
+      const request = await GradeRequest.updateOne({
+        courseId: mongoose.Types.ObjectId(courseId),
+        userRequestId: mongoose.Types.ObjectId(userRequestId),
+        gradeComponentId: mongoose.Types.ObjectId(gradeComponentId),
+        deleted_flag: false,
+      }, {
+        $set: {
+          deleted_flag: true,
+        },
+        $push: {
+          comments: comment,
+        }
+      })
+
+      if (!request) {
+        return res.notFound("Not found request", "NOT_FOUND");
+      }
+
+      request.deleted_flag = true;
+
+      await request.save();
+
+      const notification = {
+        sender: userId,
+        title: `Grade review result`,
+        description: `Teacher has responsed to your grade review request for ${gradeComponent.name}`,
+        seen: false,
+        type: "GRADE_REVIEW_RESULT",
+        extendedData: {
+          courseCode: selectedCourse.code,
+          courseId: selectedCourse._id,
+          gradeComponentId: gradeComponent._id,
+          grade: grade,
+          comment: comment,
+        },
+        deleted_flag: false,
+      };
+
+      await User.updateOne(
+        {
+          _id: userRequestId,
+        },
+        {
+          $push: {
+            notifications: {
+              $each: [notification],
+              $slice: -50,
+            },
+          },
+        }
+      );
+      return res.ok(true);
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  },
 };
