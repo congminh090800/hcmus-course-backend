@@ -288,3 +288,56 @@ module.exports = router;
  *              description: OK
  *
  */
+
+
+/**
+ * @swagger
+ * /api/grade/request-review:
+ *  post:
+ *      tags:
+ *          - grade
+ *      summary: Make a request course teachers to review a grade component
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      example:
+ *                           {
+ *                               "courseId": "6190e3f9a99e9a5fe302e4c9",
+ *                               "gradeComponentId": "61dd7d6059d856283d373d48",
+ *                               "expectedGrade": "8.5",
+ *                               "explanation": "Some explanation"
+ *                           }
+ *      responses:
+ *          200:
+ *              description: Full grade review request
+ *
+ */
+
+/**
+ * @swagger
+ * /api/grade/accept-request:
+ *  post:
+ *      tags:
+ *          - grade
+ *      summary: Accept student grade review request (update grade and comment)
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      example:
+ *                           {
+ *                               "courseId": "6190e3f9a99e9a5fe302e4c9",
+ *                               "gradeComponentId": "61dd7d6059d856283d373d48",
+ *                               "grade": "8.5",
+ *                               "userRequestId": "618e9554ef6575b47ed7c936"
+ *                           }
+ *      responses:
+ *          200:
+ *              description: OK
+ *
+ */
