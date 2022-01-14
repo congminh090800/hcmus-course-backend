@@ -25,16 +25,8 @@ const gradeRequestSchema = new Schema(
             type: String,
             default: "",
         },
-        comments: {
-            type: [
-                {
-                    type: Schema.Types.ObjectId,
-                    senderId: Schema.Types.ObjectId,
-                    createdAt: { type: Date, default: Date.now },
-                    content: String,
-                }
-            ],
-        },
+        finalGrade: Number,
+        comment: String,
         deleted_flag: { type: Boolean, default: false },
     },
     { timestamps: true }

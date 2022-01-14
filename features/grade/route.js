@@ -334,7 +334,8 @@ module.exports = router;
  *                               "courseId": "6190e3f9a99e9a5fe302e4c9",
  *                               "gradeComponentId": "61dd7d6059d856283d373d48",
  *                               "grade": "8.5",
- *                               "userRequestId": "618e9554ef6575b47ed7c936"
+ *                               "userRequestId": "618e9554ef6575b47ed7c936",
+ *                               "comment": "Some comment"
  *                           }
  *      responses:
  *          200:

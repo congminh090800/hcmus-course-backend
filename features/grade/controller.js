@@ -664,27 +664,22 @@ module.exports = {
         }
       );
 
-      const request = await GradeRequest.updateOne({
+      const request = await GradeRequest.findOne({
         courseId: mongoose.Types.ObjectId(courseId),
         userRequestId: mongoose.Types.ObjectId(userRequestId),
         gradeComponentId: mongoose.Types.ObjectId(gradeComponentId),
         deleted_flag: false,
-      }, {
-        $set: {
-          deleted_flag: true,
-        },
-        $push: {
-          comments: comment,
-        }
-      })
+      });
 
       if (!request) {
-        return res.notFound("Not found request", "NOT_FOUND");
+        return res.notFound("Not found grade request", "NOT_FOUND");
       }
 
       request.deleted_flag = true;
+      request.comment = comment;
+      request.finalGrade = grade;
 
-      await request.save();
+      request.save();
 
       const notification = {
         sender: userId,
