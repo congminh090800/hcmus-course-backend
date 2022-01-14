@@ -90,6 +90,14 @@ router.post(
   controller.acceptRequest
 );
 
+router.get(
+  '/grade/pending-requests',
+  authenticate,
+  roleAuthenticate,
+  validator(requestSchema.pendingRequests, "query"),
+  controller.pendingRequests
+)
+
 module.exports = router;
 
 /**
@@ -341,4 +349,25 @@ module.exports = router;
  *          200:
  *              description: OK
  *
+ */
+
+/**
+ * @swagger
+ * /api/grade/pending-requests:
+ *  get:
+ *      tags:
+ *          - grade
+ *      summary: Get pending grade review requests
+ *      parameters:
+ *          -   name: courseId
+ *              in: query
+ *              schema:
+ *                  type: string
+ *          -   name: gradeComponentId
+ *              in: query
+ *              schema:
+ *                  type: string
+ *      responses:
+ *          200:
+ *              description: List of pending requests
  */

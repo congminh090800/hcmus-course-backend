@@ -527,7 +527,7 @@ module.exports = {
       });
 
       if (existingRequest) {
-        return res.badRequest("You have already requested review for this grade");
+        return res.ok(existingRequest);
       }
 
       const selectedCourse = await Course.findOne({
@@ -550,10 +550,7 @@ module.exports = {
         );
       }
 
-      console.log('userId', userId);
       const user = await User.findById(userId);
-
-      console.log("user", user);
 
       const student = selectedCourse.enrolledStudents.find(e => e.studentId === user.studentId);
       if (!student) {
@@ -615,8 +612,6 @@ module.exports = {
       const userId = req.user.id;
 
       const selectedCourse = req.course;
-
-      console.log("selectedCourse", selectedCourse);
 
       if (!selectedCourse) {
         return res.notFound("Class does not exist", "Class does not exist");
@@ -716,4 +711,20 @@ module.exports = {
       next(err);
     }
   },
+  pendingRequests: async (req, res, next) => {
+    try {
+      const { courseId, gradeComponentId } = req.query;
+
+      const requests = await GradeRequest.find({
+        courseId: mongoose.Types.ObjectId(courseId),
+        gradeComponentId: mongoose.Types.ObjectId(gradeComponentId),
+        deleted_flag: false,
+      });
+
+      return res.ok(requests ?? []);
+    } catch (err) {
+      console.log(err);
+      next(err);
+    }
+  }
 };
