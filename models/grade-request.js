@@ -17,6 +17,10 @@ const gradeRequestSchema = new Schema(
             type: Schema.Types.ObjectId,
             required: true,
         },
+        studentId: {
+            type: String,
+            required: true,
+        },
         expectedGrade: {
             type: Number,
             required: true,

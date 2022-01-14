@@ -580,6 +580,7 @@ module.exports = {
       const request = {
         courseId: courseId,
         userRequestId: userId,
+        studentId: student.studentId,
         gradeComponentId: gradeComponentId,
         expectedGrade: expectedGrade,
         explanation: explanation,
@@ -848,16 +849,26 @@ module.exports = {
   },
   requestStatus: async (req, res, next) => {
     try {
-      const { courseId, gradeComponentId } = req.query;
+      const { courseId, gradeComponentId, studentId } = req.query;
       const userId = req.user.id;
 
-      const request = await GradeRequest.findOne({
-        courseId: mongoose.Types.ObjectId(courseId),
-        gradeComponentId: mongoose.Types.ObjectId(gradeComponentId),
-        userRequestId: mongoose.Types.ObjectId(userId),
-      });
+      if (studentId) {
+        const request = await GradeRequest.findOne({
+          courseId: mongoose.Types.ObjectId(courseId),
+          gradeComponentId: mongoose.Types.ObjectId(gradeComponentId),
+          studentId: studentId
+        });
 
-      return res.ok(request || { message: "No request found" });
+        return res.ok(request);
+      } else {
+        const request = await GradeRequest.findOne({
+          courseId: mongoose.Types.ObjectId(courseId),
+          gradeComponentId: mongoose.Types.ObjectId(gradeComponentId),
+          userRequestId: mongoose.Types.ObjectId(userId),
+        });
+
+        return res.ok(request);
+      }
     } catch (err) {
       console.log(err);
       next(err);
