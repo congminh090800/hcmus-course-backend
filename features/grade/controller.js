@@ -557,6 +557,26 @@ module.exports = {
         return res.forbidden("You is not enrolled in this course grade", "UNENROLLED");
       }
 
+      await Course.findByIdAndUpdate(
+        courseId,
+        {
+          $set: {
+            "enrolledStudents.$[el].grades.$[gci].inReview": true,
+          },
+        },
+        {
+          arrayFilters: [
+            {
+              "el.studentId": student.studentId,
+            },
+            {
+              "gci.gradeComponentId": gradeComponentId,
+            }
+          ],
+          returnDocument: "after",
+        }
+      );
+
       const request = {
         courseId: courseId,
         userRequestId: userId,
@@ -644,6 +664,7 @@ module.exports = {
         {
           $set: {
             "enrolledStudents.$[el].grades.$[gci].point": grade,
+            "enrolledStudents.$[el].grades.$[gci].inReview": false,
           },
         },
         {
@@ -655,7 +676,6 @@ module.exports = {
               "gci.gradeComponentId": gradeComponentId,
             }
           ],
-          returnDocument: "after",
         }
       );
 
@@ -721,7 +741,7 @@ module.exports = {
         deleted_flag: false,
       });
 
-      return res.ok(requests ?? []);
+      return res.ok(requests || []);
     } catch (err) {
       console.log(err);
       next(err);
