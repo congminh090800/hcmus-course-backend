@@ -429,6 +429,10 @@ module.exports = router;
  *              in: query
  *              schema:
  *                  type: string
+ *          -   name: studentId
+ *              in: query
+ *              schema:
+ *                  type: string
  *      responses:
  *          200:
  *              description: returns pending request (status)

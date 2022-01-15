@@ -651,9 +651,13 @@ module.exports = {
 
       const studentUser = await User.findById(userRequestId);
 
+      if (!studentUser) {
+        return res.notFound("Student does not exist", "NOT_FOUND");
+      }
+
       const student = selectedCourse.enrolledStudents.find(e => e.studentId === studentUser.studentId);
       if (!student) {
-        return res.notFound("Not found student", "NOT_FOUND");
+        return res.notFound("Not found student in course", "NOT_FOUND");
       }
 
       if (grade > gradeComponent.point) {
